@@ -1,0 +1,11 @@
+# here.now state
+.herenow/
+
+# agent memory / handoff logs
+.remember/
+
+# browser automation logs
+.playwright-mcp/
+
+# OS
+.DS_Store
