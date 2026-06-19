@@ -1,0 +1,36 @@
+name: Deploy to here.now
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; cancel an in-flight deploy when a newer push lands.
+concurrency:
+  group: herenow-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage site files
+        # Publish only the game + docs, never CI/config files.
+        run: |
+          mkdir -p _site/docs
+          cp index.html _site/index.html
+          cp docs/*.md _site/docs/
+
+      - name: Publish to here.now
+        env:
+          HERENOW_API_KEY: ${{ secrets.HERENOW_API_KEY }}
+        run: |
+          if [ -z "${HERENOW_API_KEY:-}" ]; then
+            echo "::error::HERENOW_API_KEY secret is not set. Add it under repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          chmod +x .github/scripts/publish.sh
+          .github/scripts/publish.sh _site --slug wander-willow-s6ad --client github-actions
